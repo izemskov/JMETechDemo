@@ -1,43 +1,166 @@
 package ru.develgame.techdemo;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.material.Material;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
+import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.DirectionalLight;
+import com.jme3.material.TechniqueDef;
 import com.jme3.math.ColorRGBA;
-import com.jme3.renderer.RenderManager;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Box;
+import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
+import com.jme3.post.filters.ToneMapFilter;
+import com.jme3.post.ssao.SSAOFilter;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.system.AppSettings;
+import ru.develgame.techdemo.player.Player;
+import ru.develgame.techdemo.scene.SimpleScene;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
  * Move your Logic into AppStates or Controls
  * @author normenhansen
  */
-public class Main extends SimpleApplication {
+public class Main extends SimpleApplication implements ActionListener {
+    private Vector3f walkDirection = new Vector3f();
+    private boolean left = false, right = false, up = false, down = false;
+
+    //Temporary vectors used on each frame.
+    //They here to avoid instanciating new vectors on each frame
+    private Vector3f camDir = new Vector3f();
+    private Vector3f camLeft = new Vector3f();
 
     public static void main(String[] args) {
         Main app = new Main();
+
+        AppSettings settings = new AppSettings(true);
+        settings.setTitle("Tech demo");
+        settings.setResolution(1280, 720);
+        settings.setSamples(16);
+        settings.setGammaCorrection(true);
+        app.setSettings(settings);
+
         app.start();
     }
 
     @Override
     public void simpleInitApp() {
-        Box b = new Box(1, 1, 1);
-        Geometry geom = new Geometry("Box", b);
+        // Enable physics...
+        BulletAppState bulletAppState = new BulletAppState();
+        // bulletAppState.setDebugEnabled(true);
+        stateManager.attach(bulletAppState);
+        
+        // Configure the scene for PBR
+        getRenderManager().setPreferredLightMode(TechniqueDef.LightMode.SinglePassAndImageBased);
+        getRenderManager().setSinglePassLightBatchSize(10);
+        
+        // Adjust to near frustum to a very close amount.
+        float aspect = (float)cam.getWidth() / (float)cam.getHeight();
+        cam.setFrustumPerspective(60, aspect, 0.1f, 1000);
 
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Blue);
-        geom.setMaterial(mat);
+        // change the viewport background color.
+        viewPort.setBackgroundColor(new ColorRGBA(0.4f, 0.5f, 0.6f, 1.0f));
+        
+        PhysicsSpace physicsSpace = bulletAppState.getPhysicsSpace();
+        
+        // Add some lights
+        DirectionalLight directionalLight = new DirectionalLight(
+                new Vector3f(-1, -1, -1).normalizeLocal(),
+                new ColorRGBA(1,1,1,1)
+        );
+        
+        // Add some post-processor effects.
+        initPostFx(directionalLight);
+        
+        // load scene and player
+        SimpleScene.getInstance().loadScene(assetManager, physicsSpace, rootNode);
+        Player.getInstance().loadPlayer(assetManager, physicsSpace, rootNode);
+        
+        setUpKeys();
+    }
+    
+    private void initPostFx(DirectionalLight directionalLight) {
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
 
-        rootNode.attachChild(geom);
+        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, 4096, 3);
+        dlsf.setLight(directionalLight);
+        fpp.addFilter(dlsf);
+
+        rootNode.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        SSAOFilter ssaoFilter = new SSAOFilter();
+        fpp.addFilter(ssaoFilter);
+
+        FXAAFilter fxaaFilter = new FXAAFilter();
+        fpp.addFilter(fxaaFilter);
+
+        ToneMapFilter toneMapFilter = new ToneMapFilter();
+        fpp.addFilter(toneMapFilter);
+
+        viewPort.addProcessor(fpp);
+    }
+    
+    private void setUpKeys() {
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("Shoot", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addListener(this, "Left");
+        inputManager.addListener(this, "Right");
+        inputManager.addListener(this, "Up");
+        inputManager.addListener(this, "Down");
+        inputManager.addListener(this, "Jump");
+        inputManager.addListener(this, "Shoot");
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        //TODO: add update code
+        camDir.set(cam.getDirection()).multLocal(12.6f);
+        camLeft.set(cam.getLeft()).multLocal(12.4f);
+
+        camDir.setY(0);
+        camLeft.setY(0);
+
+        walkDirection.set(0, 0, 0);
+        if (left) {
+            walkDirection.addLocal(camLeft);
+        }
+        if (right) {
+            walkDirection.addLocal(camLeft.negate());
+        }
+        if (up) {
+            walkDirection.addLocal(camDir);
+        }
+        if (down) {
+            walkDirection.addLocal(camDir.negate());
+        }
+        Player.getInstance().getPlayerControl().setWalkDirection(walkDirection);
+
+        cam.setLocation(Player.getInstance().getPlayerNode().getLocalTranslation().add(0, 15,0));
     }
 
     @Override
-    public void simpleRender(RenderManager rm) {
-        //TODO: add render code
+    public void onAction(String binding, boolean isPressed, float tpf) {
+        if (binding.equals("Left")) {
+            left = isPressed;
+        } else if (binding.equals("Right")) {
+            right = isPressed;
+        } else if (binding.equals("Up")) {
+            up = isPressed;
+        } else if (binding.equals("Down")) {
+            down = isPressed;
+        } else if (binding.equals("Jump")) {
+            if (isPressed) {
+                Player.getInstance().getPlayerControl().jump();
+            }
+        }
     }
 }
