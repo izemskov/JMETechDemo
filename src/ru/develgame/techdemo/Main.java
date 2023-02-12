@@ -20,6 +20,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
 import ru.develgame.techdemo.player.Player;
+import ru.develgame.techdemo.scene.MansionScene;
 import ru.develgame.techdemo.scene.SimpleScene;
 
 /**
@@ -79,7 +80,7 @@ public class Main extends SimpleApplication implements ActionListener {
         initPostFx(directionalLight);
         
         // load scene and player
-        SimpleScene.getInstance().loadScene(assetManager, physicsSpace, rootNode);
+        MansionScene.getInstance().loadScene(assetManager, physicsSpace, rootNode);
         Player.getInstance().loadPlayer(assetManager, physicsSpace, rootNode);
         
         setUpKeys();
