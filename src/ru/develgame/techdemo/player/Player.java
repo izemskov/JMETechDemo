@@ -9,6 +9,7 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 
 /**
  *
@@ -25,6 +26,8 @@ public class Player {
     
     private BetterCharacterControl playerControl;
     private Node playerNode;
+    private Spatial pistol;
+    private Node pistolNode;
     
     public void loadPlayer(AssetManager assetManager, PhysicsSpace physicsSpace, Node rootNode) {
         playerControl = new BetterCharacterControl(0.5f, 2, 1);
@@ -37,6 +40,13 @@ public class Player {
         physicsSpace.add(playerControl);
 
         playerControl.warp(new Vector3f(0, 5, 0));
+        
+        pistol = assetManager.loadModel("Models/Pistol.gltf.j3o");
+
+        pistolNode = new Node("Pistol Node");
+        pistolNode.attachChild(pistol);
+        pistol.setLocalTranslation(-.2f, 14.9f, .3f);
+        playerNode.attachChild(pistolNode);
     }
 
     public BetterCharacterControl getPlayerControl() {
@@ -45,5 +55,13 @@ public class Player {
 
     public Node getPlayerNode() {
         return playerNode;
+    }
+
+    public Spatial getPistol() {
+        return pistol;
+    }
+
+    public Node getPistolNode() {
+        return pistolNode;
     }
 }

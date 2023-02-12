@@ -11,6 +11,7 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.TechniqueDef;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
@@ -146,6 +147,17 @@ public class Main extends SimpleApplication implements ActionListener {
         Player.getInstance().getPlayerControl().setWalkDirection(walkDirection);
 
         cam.setLocation(Player.getInstance().getPlayerNode().getLocalTranslation().add(0, 15,0));
+        
+        float[] angles = new float[3];
+        cam.getRotation().toAngles(angles);
+        angles[0] = 0;
+        angles[2] = 0;
+        Player.getInstance().getPistolNode().setLocalRotation(new Quaternion().fromAngles(angles));
+
+        cam.getRotation().toAngles(angles);
+        angles[1] = 0;
+        angles[2] = 0;
+        Player.getInstance().getPistol().setLocalRotation(new Quaternion().fromAngles(angles));
     }
 
     @Override
