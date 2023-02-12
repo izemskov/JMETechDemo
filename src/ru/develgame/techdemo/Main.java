@@ -92,7 +92,7 @@ public class Main extends SimpleApplication implements ActionListener {
         
         // load scene and player
         MansionScene.getInstance().loadScene(assetManager, physicsSpace, rootNode);
-        Player.getInstance().loadPlayer(assetManager, physicsSpace, rootNode);
+        Player.getInstance().loadPlayer(assetManager, physicsSpace, rootNode, cam);
         
         setUpKeys();
     }
@@ -168,6 +168,9 @@ public class Main extends SimpleApplication implements ActionListener {
         angles[1] = 0;
         angles[2] = 0;
         Player.getInstance().getPistol().setLocalRotation(new Quaternion().fromAngles(angles));
+        
+        Player.getInstance().getSpot().setPosition(cam.getLocation());
+        Player.getInstance().getSpot().setDirection(cam.getDirection());
         
         sceneBullets.removeIf(bullet -> {
 

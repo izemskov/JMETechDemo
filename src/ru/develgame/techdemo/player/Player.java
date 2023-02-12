@@ -7,7 +7,11 @@ package ru.develgame.techdemo.player;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.light.SpotLight;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
@@ -28,8 +32,9 @@ public class Player {
     private Node playerNode;
     private Spatial pistol;
     private Node pistolNode;
+    private SpotLight spotLight;
     
-    public void loadPlayer(AssetManager assetManager, PhysicsSpace physicsSpace, Node rootNode) {
+    public void loadPlayer(AssetManager assetManager, PhysicsSpace physicsSpace, Node rootNode, Camera cam) {
         playerControl = new BetterCharacterControl(0.5f, 2, 1);
         playerControl.setJumpForce(new Vector3f(0, 20, 0));
         playerNode = new Node("Player");
@@ -47,6 +52,15 @@ public class Player {
         pistolNode.attachChild(pistol);
         pistol.setLocalTranslation(-.2f, 14.9f, .3f);
         playerNode.attachChild(pistolNode);
+        
+        spotLight = new SpotLight();
+        spotLight.setSpotRange(1000f);
+        spotLight.setSpotInnerAngle(20f * FastMath.DEG_TO_RAD);
+        spotLight.setSpotOuterAngle(35f * FastMath.DEG_TO_RAD);
+        spotLight.setColor(ColorRGBA.White);
+        spotLight.setPosition(cam.getLocation());
+        spotLight.setDirection(cam.getDirection());
+        rootNode.addLight(spotLight);
     }
 
     public BetterCharacterControl getPlayerControl() {
@@ -63,5 +77,9 @@ public class Player {
 
     public Node getPistolNode() {
         return pistolNode;
+    }
+
+    public SpotLight getSpot() {
+        return spotLight;
     }
 }
