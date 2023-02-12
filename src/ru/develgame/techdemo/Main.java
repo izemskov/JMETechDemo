@@ -3,12 +3,15 @@ package ru.develgame.techdemo;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
 import com.jme3.material.TechniqueDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
@@ -18,9 +21,14 @@ import com.jme3.post.filters.FXAAFilter;
 import com.jme3.post.filters.ToneMapFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.system.AppSettings;
+import java.util.ArrayList;
+import java.util.List;
 import ru.develgame.techdemo.player.Player;
+import ru.develgame.techdemo.player.TimedBullet;
 import ru.develgame.techdemo.scene.MansionScene;
 import ru.develgame.techdemo.scene.SimpleScene;
 
@@ -37,6 +45,8 @@ public class Main extends SimpleApplication implements ActionListener {
     //They here to avoid instanciating new vectors on each frame
     private Vector3f camDir = new Vector3f();
     private Vector3f camLeft = new Vector3f();
+    
+    private final List<TimedBullet> sceneBullets = new ArrayList<>();
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -158,6 +168,18 @@ public class Main extends SimpleApplication implements ActionListener {
         angles[1] = 0;
         angles[2] = 0;
         Player.getInstance().getPistol().setLocalRotation(new Quaternion().fromAngles(angles));
+        
+        sceneBullets.removeIf(bullet -> {
+
+            if (bullet.updateTime(tpf) > bullet.getMaxTime()) {
+                bullet.getSpatial().removeFromParent();
+                RigidBodyControl rigidBodyControl = bullet.getSpatial().getControl(RigidBodyControl.class);
+                getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(rigidBodyControl);
+                return true;
+            }
+
+            return false;
+        });
     }
 
     @Override
@@ -174,6 +196,28 @@ public class Main extends SimpleApplication implements ActionListener {
             if (isPressed) {
                 Player.getInstance().getPlayerControl().jump();
             }
+        } else if (binding.equals("Shoot") && !isPressed) {
+
+            Geometry bullet = new Geometry("Bullet", new Sphere(32, 32, 0.1f));
+            bullet.setMaterial(new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md"));
+            bullet.getMaterial().setColor("BaseColor", ColorRGBA.Yellow);
+            bullet.getMaterial().setFloat("Metallic", 0.01f);
+            bullet.getMaterial().setFloat("Roughness", 0.3f);
+            rootNode.attachChild(bullet);
+
+            sceneBullets.add(new TimedBullet(bullet, 10));
+
+            RigidBodyControl rigidBodyControl = new RigidBodyControl(CollisionShapeFactory.createDynamicMeshShape(bullet), 0.5f);
+            rigidBodyControl.setCcdMotionThreshold(.2f);
+            rigidBodyControl.setCcdSweptSphereRadius(.2f);
+            bullet.addControl(rigidBodyControl);
+
+            stateManager.getState(BulletAppState.class).getPhysicsSpace().add(rigidBodyControl);
+
+            // rigidBodyControl.setPhysicsLocation(cam.getLocation().add(cam.getDirection().mult(0.5f)));
+            rigidBodyControl.setPhysicsLocation(Player.getInstance().getPistol().getWorldTranslation());
+            rigidBodyControl.setPhysicsRotation(cam.getRotation());
+            rigidBodyControl.applyImpulse(cam.getDirection().mult(20), new Vector3f());
         }
     }
 }
