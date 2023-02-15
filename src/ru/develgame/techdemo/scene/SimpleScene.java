@@ -8,6 +8,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
@@ -32,6 +33,12 @@ public class SimpleScene implements Scene {
         RigidBodyControl landControl = new RigidBodyControl(CollisionShapeFactory.createMeshShape(land), 0);
         land.addControl(landControl);
         physicsSpace.add(landControl);
+        
+        Node sofa = (Node) level.getChild("SofaNode");
+        RigidBodyControl rigidBodyControl = new RigidBodyControl(CollisionShapeFactory.createDynamicMeshShape(sofa), 50.0f);
+        sofa.addControl(rigidBodyControl);
+        rigidBodyControl.setAngularFactor(0);
+        physicsSpace.add(rigidBodyControl);
         
         rootNode.attachChild(level);
     }
