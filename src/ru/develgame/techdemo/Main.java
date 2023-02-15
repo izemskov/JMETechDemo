@@ -65,7 +65,7 @@ public class Main extends SimpleApplication implements ActionListener {
     public void simpleInitApp() {
         // Enable physics...
         BulletAppState bulletAppState = new BulletAppState();
-        // bulletAppState.setDebugEnabled(true);
+        //bulletAppState.setDebugEnabled(true);
         stateManager.attach(bulletAppState);
         
         // Configure the scene for PBR
