@@ -135,8 +135,8 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleUpdate(float tpf) {
-        camDir.set(cam.getDirection()).multLocal(12.6f);
-        camLeft.set(cam.getLeft()).multLocal(12.4f);
+        camDir.set(cam.getDirection()).multLocal(0.6f);
+        camLeft.set(cam.getLeft()).multLocal(0.4f);
 
         camDir.setY(0);
         camLeft.setY(0);
