@@ -44,7 +44,7 @@ public class Player {
 
         physicsSpace.add(playerControl);
 
-        playerControl.warp(new Vector3f(0, 5, 0));
+        playerControl.warp(new Vector3f(0, 5,30));
         
         pistol = assetManager.loadModel("Models/Pistol.gltf.j3o");
 
