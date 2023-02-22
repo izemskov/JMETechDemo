@@ -6,7 +6,8 @@ package ru.develgame.techdemo.player;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.PhysicsSpace;
-import com.jme3.bullet.control.BetterCharacterControl;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
 import com.jme3.light.SpotLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -28,15 +29,17 @@ public class Player {
         return instance;
     }
     
-    private BetterCharacterControl playerControl;
+    private CharacterControl playerControl;
     private Node playerNode;
     private Spatial pistol;
     private Node pistolNode;
     private SpotLight spotLight;
     
     public void loadPlayer(AssetManager assetManager, PhysicsSpace physicsSpace, Node rootNode, Camera cam) {
-        playerControl = new BetterCharacterControl(0.5f, 2, 1);
-        playerControl.setJumpForce(new Vector3f(0, 20, 0));
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(2f, 8f, 1);
+        playerControl = new CharacterControl(capsuleShape, 4f);
+        playerControl.setJumpSpeed(25);
+        playerControl.setFallSpeed(30);
         playerNode = new Node("Player");
         playerNode.addControl(playerControl);
 
@@ -63,7 +66,7 @@ public class Player {
         rootNode.addLight(spotLight);
     }
 
-    public BetterCharacterControl getPlayerControl() {
+    public CharacterControl getPlayerControl() {
         return playerControl;
     }
 
