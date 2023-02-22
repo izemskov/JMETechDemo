@@ -29,7 +29,7 @@ public class MansionScene implements Scene {
         Node level = (Node) assetManager.loadModel("Scenes/Mansion.j3o");
         
         for (Spatial elem : level.getChildren()) {
-            if (elem.getName().equals("Sofa07")) {
+            if (elem.getName().startsWith("Sofa")) {
                 RigidBodyControl rigidBodyControl = new RigidBodyControl(CollisionShapeFactory.createDynamicMeshShape(elem), 100.0f);
                 elem.addControl(rigidBodyControl);
                 rigidBodyControl.setAngularFactor(0);
